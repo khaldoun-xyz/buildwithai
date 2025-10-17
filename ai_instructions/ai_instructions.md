@@ -24,6 +24,12 @@ def divide(a: float, b: float) -> float:
     return a / b
 ```
 
+## Deploy via Docker
+
+We want to deploy our product on a server.
+Therefore, make sure that the product can
+always be started with a docker or docker-compose command.
+
 ## System prompt
 
 - Suggest only code that a junior developer would understand.
