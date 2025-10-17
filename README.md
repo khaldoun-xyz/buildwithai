@@ -233,7 +233,7 @@ This project is open source and available under the MIT License.
 =======
 # BuildwithAI is an AI builder event
 
-You'll try to build 3 products within 6 hours.
+We'll try to build 3 products within 6 hours.
 
 - Get free access to AI coding assistants.
 - Build & deploy as many products as you can in 6 hours.
