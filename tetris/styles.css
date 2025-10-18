@@ -12,6 +12,35 @@ body {
     justify-content: center;
     align-items: center;
     color: white;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Rotating Snakes Optical Illusion Background */
+body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: 
+        radial-gradient(circle at 20% 20%, #ff6b6b 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, #4ecdc4 0%, transparent 50%),
+        radial-gradient(circle at 20% 80%, #45b7d1 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, #96ceb4 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, #feca57 0%, transparent 50%);
+    animation: rotateBackground 20s linear infinite;
+    opacity: 0.1;
+    z-index: -1;
+}
+
+@keyframes rotateBackground {
+    0% { transform: rotate(0deg) scale(1); }
+    25% { transform: rotate(-90deg) scale(1.1); }
+    50% { transform: rotate(-180deg) scale(1); }
+    75% { transform: rotate(-270deg) scale(1.1); }
+    100% { transform: rotate(-360deg) scale(1); }
 }
 
 .game-container {
@@ -168,6 +197,40 @@ body {
     animation: rotateGrid 10s linear infinite;
 }
 
+/* Optical Illusion: Motion Aftereffect */
+.game-grid.rotating::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: -20px;
+    right: -20px;
+    bottom: -20px;
+    background: 
+        conic-gradient(from 0deg, 
+            transparent 0deg, 
+            rgba(255, 255, 255, 0.1) 30deg, 
+            transparent 60deg,
+            rgba(255, 255, 255, 0.1) 90deg,
+            transparent 120deg,
+            rgba(255, 255, 255, 0.1) 150deg,
+            transparent 180deg,
+            rgba(255, 255, 255, 0.1) 210deg,
+            transparent 240deg,
+            rgba(255, 255, 255, 0.1) 270deg,
+            transparent 300deg,
+            rgba(255, 255, 255, 0.1) 330deg,
+            transparent 360deg
+        );
+    animation: counterRotate 10s linear infinite reverse;
+    border-radius: 50%;
+    z-index: -1;
+}
+
+@keyframes counterRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
 @keyframes rotateGrid {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
@@ -180,7 +243,7 @@ body {
     width: 10px;
     height: 10px;
     transform: translate(-50%, -50%);
-    background: #ff0000;
+    background: #080707;
     border-radius: 50%;
     border: 2px solid #fff;
     z-index: 10;
@@ -209,14 +272,14 @@ body {
 
 /* Left field - positioned to the left of center, rotated 270° */
 .game-quadrant.left {
-    left: calc(50% - 75px - 150px); /* 5 fields (75px) + game height (300px) left of center */
+    left: calc(50% - 75px - 300px); /* 5 fields (75px) + game height (300px) left of center */
     top: 50%;
     transform: translateY(-50%) rotate(270deg);
 }
 
 /* Right field - positioned to the right of center, rotated 90° */
 .game-quadrant.right {
-    left: calc(50% + 75px + 150px); /* 5 fields (75px) right of center */
+    left: calc(50% + 75px); /* 5 fields (75px) right of center */
     top: 50%;
     transform: translateY(-50%) rotate(90deg);
 }
@@ -225,6 +288,31 @@ body {
     border: 2px solid #fff;
     border-radius: 8px;
     background: #000;
+    transition: all 0.3s ease;
+}
+
+/* Optical Illusion: Pulsating Border */
+.game-quadrant canvas:hover {
+    box-shadow: 
+        0 0 20px rgba(255, 255, 255, 0.5),
+        0 0 40px rgba(255, 255, 255, 0.3),
+        0 0 60px rgba(255, 255, 255, 0.1);
+    animation: pulseGlow 2s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+    0%, 100% { 
+        box-shadow: 
+            0 0 20px rgba(255, 255, 255, 0.5),
+            0 0 40px rgba(255, 255, 255, 0.3),
+            0 0 60px rgba(255, 255, 255, 0.1);
+    }
+    50% { 
+        box-shadow: 
+            0 0 30px rgba(255, 255, 255, 0.8),
+            0 0 60px rgba(255, 255, 255, 0.5),
+            0 0 90px rgba(255, 255, 255, 0.2);
+    }
 }
 
 /* External scores positioned outside the game area */
@@ -356,6 +444,38 @@ body {
     background: rgba(255, 255, 255, 0.1);
     padding: 8px 12px;
     border-radius: 6px;
+}
+
+/* 3D Mode Styles */
+.game-3d {
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.game-3d canvas {
+    border: 3px solid #fff;
+    border-radius: 8px;
+    background: #000;
+}
+
+.rotation-info {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 15px;
+}
+
+.rotation-label {
+    font-size: 16px;
+    margin-bottom: 10px;
+    font-weight: bold;
+}
+
+.rotation-controls div {
+    margin-bottom: 5px;
+    font-size: 14px;
+    opacity: 0.8;
 }
 
 /* Responsive Design */

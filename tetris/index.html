@@ -14,6 +14,7 @@
                 <button id="startBtn">Start Game</button>
                 <button id="pauseBtn" disabled>Pause</button>
                 <button id="modeBtn">Switch to 4-Part Mode</button>
+                <button id="mode3DBtn">Switch to 3D Mode</button>
             </div>
         </div>
         
@@ -80,6 +81,29 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- 3D Mode -->
+            <div class="game-3d" id="game3D" style="display: none;">
+                <div class="game-info">
+                    <div class="info-panel">
+                        <div class="score">Score: <span id="score3d">0</span></div>
+                        <div class="level">Level: <span id="level3d">1</span></div>
+                        <div class="lines">Lines: <span id="lines3d">0</span></div>
+                    </div>
+                    <div class="next-pieces">
+                        <div class="next-label">Next:</div>
+                        <canvas id="nextCanvas3d" width="120" height="120"></canvas>
+                    </div>
+                    <div class="rotation-info">
+                        <div class="rotation-label">3D Rotation:</div>
+                        <div class="rotation-controls">
+                            <div>WASD: Rotate View</div>
+                            <div>Arrow Keys: Move Piece</div>
+                        </div>
+                    </div>
+                </div>
+                <canvas id="gameCanvas3d" width="400" height="600"></canvas>
+            </div>
         </div>
         
         <div class="game-over" id="gameOver" style="display: none;">
@@ -99,6 +123,9 @@
                 <div>Z : Rotate counter-clockwise</div>
                 <div>Space : Hard drop</div>
                 <div>P : Pause</div>
+                <div><strong>3D Mode:</strong></div>
+                <div>WASD : Rotate 3D view</div>
+                <div>Arrow Keys : Move piece</div>
             </div>
         </div>
     </div>
