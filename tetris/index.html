@@ -39,35 +39,44 @@
                 <div class="multi-info">
                     <div class="total-score">Total Score: <span id="totalScore">0</span></div>
                     <div class="active-games">Active Games: <span id="activeGames">4</span></div>
+                    <button id="rotationBtn">Start Rotation</button>
                 </div>
                 <div class="game-grid">
+                    <!-- Central orientation point -->
+                    <div class="center-point"></div>
+                    
+                    <!-- Game quadrants positioned around the center -->
                     <div class="game-quadrant top">
-                        <canvas id="gameCanvas1" width="200" height="400"></canvas>
-                        <div class="quadrant-info">
-                            <div>Score: <span id="score1">0</span></div>
-                            <div>Level: <span id="level1">1</span></div>
-                        </div>
+                        <canvas id="gameCanvas1" width="150" height="300"></canvas>
                     </div>
                     <div class="game-quadrant bottom">
-                        <canvas id="gameCanvas2" width="200" height="400"></canvas>
-                        <div class="quadrant-info">
-                            <div>Score: <span id="score2">0</span></div>
-                            <div>Level: <span id="level2">1</span></div>
-                        </div>
+                        <canvas id="gameCanvas2" width="150" height="300"></canvas>
                     </div>
                     <div class="game-quadrant left">
-                        <canvas id="gameCanvas3" width="200" height="400"></canvas>
-                        <div class="quadrant-info">
-                            <div>Score: <span id="score3">0</span></div>
-                            <div>Level: <span id="level3">1</span></div>
-                        </div>
+                        <canvas id="gameCanvas3" width="150" height="300"></canvas>
                     </div>
                     <div class="game-quadrant right">
-                        <canvas id="gameCanvas4" width="200" height="400"></canvas>
-                        <div class="quadrant-info">
-                            <div>Score: <span id="score4">0</span></div>
-                            <div>Level: <span id="level4">1</span></div>
-                        </div>
+                        <canvas id="gameCanvas4" width="150" height="300"></canvas>
+                    </div>
+                </div>
+                
+                <!-- Scores positioned outside the game area -->
+                <div class="external-scores">
+                    <div class="score-panel top-score">
+                        <div>Game 1 - Score: <span id="score1">0</span></div>
+                        <div>Level: <span id="level1">1</span></div>
+                    </div>
+                    <div class="score-panel bottom-score">
+                        <div>Game 2 - Score: <span id="score2">0</span></div>
+                        <div>Level: <span id="level2">1</span></div>
+                    </div>
+                    <div class="score-panel left-score">
+                        <div>Game 3 - Score: <span id="score3">0</span></div>
+                        <div>Level: <span id="level3">1</span></div>
+                    </div>
+                    <div class="score-panel right-score">
+                        <div>Game 4 - Score: <span id="score4">0</span></div>
+                        <div>Level: <span id="level4">1</span></div>
                     </div>
                 </div>
             </div>

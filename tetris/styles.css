@@ -130,49 +130,146 @@ body {
     margin-bottom: 20px;
     font-size: 20px;
     font-weight: bold;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    align-items: center;
+}
+
+#rotationBtn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    background: #ff6b6b;
+    color: white;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+#rotationBtn:hover {
+    background: #ff5252;
+    transform: translateY(-1px);
 }
 
 .game-grid {
-    display: grid;
-    grid-template-areas: 
-        ". top ."
-        "left center right"
-        ". bottom .";
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 1fr 1fr 1fr;
-    gap: 20px;
-    justify-items: center;
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    margin: 0 auto;
+    transform-origin: center center;
+    transition: transform 0.5s ease-in-out;
+    display: flex;
+    justify-content: center;
     align-items: center;
-    min-height: 600px;
+}
+
+.game-grid.rotating {
+    animation: rotateGrid 10s linear infinite;
+}
+
+@keyframes rotateGrid {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.center-point {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 10px;
+    height: 10px;
+    transform: translate(-50%, -50%);
+    background: #ff0000;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    z-index: 10;
 }
 
 .game-quadrant {
+    position: absolute;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 10px;
 }
 
+/* Top field - positioned above center, no rotation */
 .game-quadrant.top {
-    grid-area: top;
+    top: calc(50% - 75px - 300px); /* 5 fields (75px) + game height (300px) above center */
+    left: 50%;
+    transform: translateX(-50%);
 }
 
+/* Bottom field - positioned below center, rotated 180° */
 .game-quadrant.bottom {
-    grid-area: bottom;
+    top: calc(50% + 75px); /* 5 fields (75px) below center */
+    left: 50%;
+    transform: translateX(-50%) rotate(180deg);
 }
 
+/* Left field - positioned to the left of center, rotated 270° */
 .game-quadrant.left {
-    grid-area: left;
+    left: calc(50% - 75px - 150px); /* 5 fields (75px) + game height (300px) left of center */
+    top: 50%;
+    transform: translateY(-50%) rotate(270deg);
 }
 
+/* Right field - positioned to the right of center, rotated 90° */
 .game-quadrant.right {
-    grid-area: right;
+    left: calc(50% + 75px + 150px); /* 5 fields (75px) right of center */
+    top: 50%;
+    transform: translateY(-50%) rotate(90deg);
 }
 
 .game-quadrant canvas {
     border: 2px solid #fff;
     border-radius: 8px;
     background: #000;
+}
+
+/* External scores positioned outside the game area */
+.external-scores {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+}
+
+.score-panel {
+    position: absolute;
+    background: rgba(0, 0, 0, 0.8);
+    padding: 10px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: bold;
+    color: white;
+    border: 2px solid #fff;
+}
+
+.score-panel.top-score {
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.score-panel.bottom-score {
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.score-panel.left-score {
+    left: 20px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.score-panel.right-score {
+    right: 20px;
+    top: 50%;
+    transform: translateY(-50%);
 }
 
 .quadrant-info {

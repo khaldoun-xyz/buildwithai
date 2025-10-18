@@ -334,6 +334,54 @@ class TetrisGame {
         }
     }
     
+    renderNextPieces() {
+        const nextCanvas = document.getElementById('nextCanvas');
+        if (!nextCanvas) return;
+        
+        const nextCtx = nextCanvas.getContext('2d');
+        
+        // Clear canvas
+        nextCtx.fillStyle = '#000';
+        nextCtx.fillRect(0, 0, nextCanvas.width, nextCanvas.height);
+        
+        // Draw next pieces
+        const cellSize = 15;
+        const startY = 20;
+        
+        this.nextPieces.forEach((piece, index) => {
+            const y = startY + index * 40;
+            this.drawNextPiece(nextCtx, piece, 20, y, cellSize);
+        });
+    }
+    
+    drawNextPiece(ctx, piece, x, y, cellSize) {
+        ctx.fillStyle = piece.color;
+        const shape = piece.shape;
+        
+        for (let py = 0; py < shape.length; py++) {
+            for (let px = 0; px < shape[py].length; px++) {
+                if (shape[py][px]) {
+                    ctx.fillRect(
+                        x + px * cellSize,
+                        y + py * cellSize,
+                        cellSize,
+                        cellSize
+                    );
+                    
+                    // Draw border
+                    ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 1;
+                    ctx.strokeRect(
+                        x + px * cellSize,
+                        y + py * cellSize,
+                        cellSize,
+                        cellSize
+                    );
+                }
+            }
+        }
+    }
+    
     drawGrid() {
         for (let y = 0; y < this.gridHeight; y++) {
             for (let x = 0; x < this.gridWidth; x++) {
@@ -432,6 +480,12 @@ class TetrisGame {
         this.gameOver = false;
         this.paused = false;
         this.lastTime = performance.now();
+        
+        // Render next pieces initially
+        if (!this.isMultiGame) {
+            this.renderNextPieces();
+        }
+        
         this.gameLoop();
     }
     
@@ -452,6 +506,11 @@ class TetrisGame {
         this.dropTime = 0;
         this.generateNextPieces();
         this.spawnPiece();
+        
+        // Render next pieces after reset
+        if (!this.isMultiGame) {
+            this.renderNextPieces();
+        }
     }
     
     gameLoop() {
@@ -464,6 +523,11 @@ class TetrisGame {
         this.update(deltaTime);
         this.render();
         
+        // Render next pieces for single game mode
+        if (!this.isMultiGame) {
+            this.renderNextPieces();
+        }
+        
         requestAnimationFrame(() => this.gameLoop());
     }
 }
@@ -475,6 +539,7 @@ class MultiGameManager {
         this.gameMode = 'single'; // 'single' or 'multi'
         this.totalScore = 0;
         this.activeGames = 4;
+        this.isRotating = false;
         this.setupGames();
     }
     
@@ -490,6 +555,14 @@ class MultiGameManager {
             const canvas = document.getElementById(`gameCanvas${i}`);
             if (canvas) {
                 const game = new TetrisGame(canvas, true);
+                
+                // All games have the same dimensions: 10x20 grid
+                game.gridWidth = 10;
+                game.gridHeight = 20;
+                game.cellSize = 15; // 150px canvas width / 10 cells = 15px per cell
+                
+                game.grid = game.createGrid(); // Recreate grid with new dimensions
+                game.setupCanvas();
                 this.games.push(game);
             }
         }
@@ -505,6 +578,8 @@ class MultiGameManager {
             });
             this.activeGames = 4;
         }
+        // Enable pause button when game starts
+        document.getElementById('pauseBtn').disabled = false;
     }
     
     pauseGame() {
@@ -521,6 +596,12 @@ class MultiGameManager {
         } else {
             this.games.forEach(game => game.reset());
             this.activeGames = 4;
+        }
+        // Disable pause button when game is reset
+        document.getElementById('pauseBtn').disabled = true;
+        // Stop rotation when game is reset
+        if (this.isRotating) {
+            this.toggleRotation();
         }
     }
     
@@ -578,10 +659,30 @@ class MultiGameManager {
     showGameOver(finalScore) {
         document.getElementById('finalScore').textContent = finalScore;
         document.getElementById('gameOver').style.display = 'flex';
+        // Disable pause button when game is over
+        document.getElementById('pauseBtn').disabled = true;
     }
     
     hideGameOver() {
         document.getElementById('gameOver').style.display = 'none';
+    }
+    
+    toggleRotation() {
+        if (this.gameMode !== 'multi') return;
+        
+        this.isRotating = !this.isRotating;
+        const gameGrid = document.querySelector('.game-grid');
+        const rotationBtn = document.getElementById('rotationBtn');
+        
+        if (this.isRotating) {
+            gameGrid.classList.add('rotating');
+            rotationBtn.textContent = 'Stop Rotation';
+            rotationBtn.style.background = '#4CAF50';
+        } else {
+            gameGrid.classList.remove('rotating');
+            rotationBtn.textContent = 'Start Rotation';
+            rotationBtn.style.background = '#ff6b6b';
+        }
     }
 }
 
@@ -606,6 +707,10 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('restartBtn').addEventListener('click', () => {
         gameManager.resetGame();
         gameManager.hideGameOver();
+    });
+    
+    document.getElementById('rotationBtn').addEventListener('click', () => {
+        gameManager.toggleRotation();
     });
     
     // Game loop for UI updates
