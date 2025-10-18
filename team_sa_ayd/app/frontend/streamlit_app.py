@@ -19,7 +19,13 @@ def upload_document(file_content: bytes, filename: str) -> Dict:
     Raises:
         requests.RequestException: If upload fails.
     """
-    files = {"file": (filename, file_content, "text/plain")}
+    # Determine content type based on file extension
+    if filename.endswith('.pdf'):
+        content_type = "application/pdf"
+    else:
+        content_type = "text/plain"
+    
+    files = {"file": (filename, file_content, content_type)}
     response = requests.post(f"{BACKEND_URL}/upload", files=files)
     response.raise_for_status()
     return response.json()
@@ -65,7 +71,7 @@ def main():
     )
     
     st.title("📄 Ask Your Document")
-    st.markdown("Upload a text document and ask questions about its content.")
+    st.markdown("Upload a text or PDF document and ask questions about its content.")
     
     # Initialize session state
     if "messages" not in st.session_state:
@@ -78,9 +84,9 @@ def main():
         st.header("📁 Document Upload")
         
         uploaded_file = st.file_uploader(
-            "Choose a text file",
-            type=['txt'],
-            help="Upload a .txt file to start asking questions"
+            "Choose a document file",
+            type=['txt', 'pdf'],
+            help="Upload a .txt or .pdf file to start asking questions"
         )
         
         if uploaded_file is not None:

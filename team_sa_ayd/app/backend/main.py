@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Tuple
 import uvicorn
+import io
+from PyPDF2 import PdfReader
 from rag_pipeline import RAGPipeline
 
 app = FastAPI(title="Ask Your Document API", version="1.0.0")
@@ -18,6 +20,27 @@ app.add_middleware(
 
 # Global RAG pipeline instance
 rag_pipeline = RAGPipeline()
+
+def extract_pdf_text(file_bytes: bytes) -> str:
+    """Extract text from PDF file bytes.
+    
+    Args:
+        file_bytes: The PDF file content as bytes.
+        
+    Returns:
+        Extracted text from the PDF.
+        
+    Raises:
+        Exception: If PDF processing fails.
+    """
+    try:
+        reader = PdfReader(io.BytesIO(file_bytes))
+        text = ""
+        for page in reader.pages:
+            text += page.extract_text() + "\n"
+        return text.strip()
+    except Exception as e:
+        raise Exception(f"Failed to extract text from PDF: {str(e)}")
 
 class QuestionRequest(BaseModel):
     """Request model for asking questions."""
@@ -44,26 +67,31 @@ async def health_check():
 
 @app.post("/upload", response_model=UploadResponse)
 async def upload_document(file: UploadFile = File(...)):
-    """Upload and process a text document.
+    """Upload and process a text or PDF document.
     
     Args:
-        file: The uploaded text file.
+        file: The uploaded text or PDF file.
         
     Returns:
         Upload confirmation with chunk count.
         
     Raises:
-        HTTPException: If file is not a text file or processing fails.
+        HTTPException: If file is not supported or processing fails.
     """
-    if not file.filename.endswith('.txt'):
-        raise HTTPException(status_code=400, detail="Only .txt files are supported")
+    if not (file.filename.endswith('.txt') or file.filename.endswith('.pdf')):
+        raise HTTPException(status_code=400, detail="Only .txt and .pdf files are supported")
     
     try:
         content = await file.read()
-        text = content.decode('utf-8')
+        
+        # Extract text based on file type
+        if file.filename.endswith('.txt'):
+            text = content.decode('utf-8')
+        elif file.filename.endswith('.pdf'):
+            text = extract_pdf_text(content)
         
         if not text.strip():
-            raise HTTPException(status_code=400, detail="File is empty")
+            raise HTTPException(status_code=400, detail="File is empty or contains no text")
         
         # Add document to RAG pipeline
         initial_chunks_count = len(rag_pipeline.chunks)
