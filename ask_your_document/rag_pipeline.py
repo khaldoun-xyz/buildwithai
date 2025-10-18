@@ -18,8 +18,8 @@ class RAGPipeline:
             persist_directory: Directory to persist ChromaDB data.
         """
         self.chat_model = "llama3.2:3b"
-        self.chunk_size = 500
-        self.chunk_overlap = 50
+        self.chunk_size = 1000  # Larger chunks for better context
+        self.chunk_overlap = 100  # More overlap for better retrieval
         self.encoding = tiktoken.get_encoding("cl100k_base")
         
         # Ollama configuration for embeddings - using chat model for embeddings
@@ -29,8 +29,25 @@ class RAGPipeline:
         self.chroma_client = chromadb.PersistentClient(path=persist_directory)
         self.collection = self.chroma_client.get_or_create_collection(
             name="documents",
-            metadata={"hnsw:space": "cosine"}
+            metadata={"hnsw:space": "cosine", "dimension": 384}
         )
+    
+    def clear_documents(self):
+        """Clear all documents from the collection."""
+        try:
+            # Delete the entire collection
+            self.chroma_client.delete_collection("documents")
+            # Recreate the collection
+            self.collection = self.chroma_client.get_or_create_collection(
+                name="documents",
+                metadata={"hnsw:space": "cosine", "dimension": 384}
+            )
+        except Exception as e:
+            # If collection doesn't exist, just create it
+            self.collection = self.chroma_client.get_or_create_collection(
+                name="documents",
+                metadata={"hnsw:space": "cosine", "dimension": 384}
+            )
     
     def chunk_text(self, text: str, document_name: str) -> List[Dict[str, any]]:
         """Split text into overlapping chunks with better sentence boundaries.
@@ -128,10 +145,7 @@ class RAGPipeline:
         return chunks
     
     def get_embedding(self, text: str) -> List[float]:
-        """Get embedding for text using a simple hash-based approach.
-        
-        Since we're using a chat model instead of a dedicated embedding model,
-        we'll create a simple but effective embedding using text hashing.
+        """Get embedding for text using optimized hash-based approach.
         
         Args:
             text: Text to embed.
@@ -143,44 +157,46 @@ class RAGPipeline:
             import hashlib
             import numpy as np
             
-            # Create a simple but effective embedding using text hashing
-            # This creates a consistent vector representation for similar texts
-            text_lower = text.lower().strip()
+            # Preprocess text for better performance
+            text_clean = text.lower().strip()
+            words = text_clean.split()[:30]  # Limit to first 30 words for speed
             
-            # Create multiple hash values for different text features
-            hash1 = int(hashlib.md5(text_lower.encode()).hexdigest()[:8], 16)
-            hash2 = int(hashlib.sha1(text_lower.encode()).hexdigest()[:8], 16)
-            hash3 = int(hashlib.sha256(text_lower.encode()).hexdigest()[:8], 16)
-            
-            # Create word-based hashes
-            words = text_lower.split()
-            word_hashes = []
-            for word in words[:50]:  # Limit to first 50 words
-                word_hashes.append(int(hashlib.md5(word.encode()).hexdigest()[:4], 16))
-            
-            # Pad or truncate to get exactly 768 dimensions (standard embedding size)
-            while len(word_hashes) < 768:
-                word_hashes.extend(word_hashes[:min(768-len(word_hashes), len(word_hashes))])
-            
-            # Create the final embedding vector
+            # Create a smaller, faster embedding (384 dimensions instead of 768)
             embedding = []
             
-            # Add the main hash values
-            embedding.extend([hash1 % 1000 / 1000.0, hash2 % 1000 / 1000.0, hash3 % 1000 / 1000.0])
+            # Text-level features (3 values)
+            text_hash = int(hashlib.md5(text_clean.encode()).hexdigest()[:8], 16)
+            embedding.extend([
+                (text_hash % 1000) / 1000.0,
+                ((text_hash >> 8) % 1000) / 1000.0,
+                ((text_hash >> 16) % 1000) / 1000.0
+            ])
             
-            # Add word-based features
-            embedding.extend([h % 1000 / 1000.0 for h in word_hashes[:765]])
+            # Word-level features (30 words * 12 features = 360 values)
+            for word in words:
+                word_hash = int(hashlib.md5(word.encode()).hexdigest()[:6], 16)
+                # Create 12 features per word
+                for i in range(12):
+                    embedding.append(((word_hash >> (i * 2)) % 1000) / 1000.0)
             
-            # Normalize the vector
+            # Pad to exactly 384 dimensions
+            while len(embedding) < 384:
+                embedding.append(0.0)
+            
+            # Truncate if too long
+            embedding = embedding[:384]
+            
+            # Normalize
             embedding = np.array(embedding)
-            embedding = embedding / (np.linalg.norm(embedding) + 1e-8)
+            norm = np.linalg.norm(embedding)
+            if norm > 0:
+                embedding = embedding / norm
             
             return embedding.tolist()
             
         except Exception as e:
             st.error(f"Error creating embedding: {str(e)}")
-            # Return a zero vector as fallback
-            return [0.0] * 768
+            return [0.0] * 384
     
     def extract_text_from_pdf(self, pdf_file) -> str:
         """Extract text from PDF file.
@@ -231,7 +247,7 @@ class RAGPipeline:
         text = self.extract_text_from_pdf(pdf_file)
         self.add_document(text, document_name)
     
-    def retrieve_relevant_chunks(self, query: str, n_results: int = 5) -> List[Dict[str, any]]:
+    def retrieve_relevant_chunks(self, query: str, n_results: int = 3) -> List[Dict[str, any]]:
         """Retrieve most relevant chunks for a query.
         
         Args:
