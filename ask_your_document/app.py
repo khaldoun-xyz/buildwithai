@@ -62,7 +62,9 @@ def display_chat_interface():
     for message in st.session_state.messages:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
-    
+
+def process_chat_input():
+    """Process chat input and generate response."""
     if prompt := st.chat_input("Ask a question about your document..."):
         st.session_state.messages.append({"role": "user", "content": prompt})
         
@@ -124,23 +126,35 @@ def main():
     initialize_session_state()
     setup_rag_pipeline()
     
-    tab1, tab2 = st.tabs(["💬 Chat", "🔍 Validation"])
+    # Upload section
+    st.markdown("### Upload Document")
+    uploaded_file = st.file_uploader(
+        "Choose a document file (.txt or .pdf)",
+        type=['txt', 'pdf'],
+        help="Upload a .txt or .pdf file to start asking questions"
+    )
+    
+    if uploaded_file is not None:
+        process_uploaded_file(uploaded_file)
+    
+    # Chat interface (outside of tabs)
+    if st.session_state.document_processed:
+        display_chat_interface()
+        process_chat_input()
+    else:
+        st.info("Please upload a document first to start chatting.")
+    
+    # Tabs for additional features
+    tab1, tab2 = st.tabs(["💬 Chat History", "🔍 Validation"])
     
     with tab1:
-        st.markdown("### Upload Document")
-        uploaded_file = st.file_uploader(
-            "Choose a document file (.txt or .pdf)",
-            type=['txt', 'pdf'],
-            help="Upload a .txt or .pdf file to start asking questions"
-        )
-        
-        if uploaded_file is not None:
-            process_uploaded_file(uploaded_file)
-        
-        if st.session_state.document_processed:
-            display_chat_interface()
+        st.markdown("### Chat History")
+        if st.session_state.messages:
+            for message in st.session_state.messages:
+                with st.chat_message(message["role"]):
+                    st.markdown(message["content"])
         else:
-            st.info("Please upload a document first to start chatting.")
+            st.info("No messages yet. Start chatting above!")
     
     with tab2:
         display_validation_interface()
