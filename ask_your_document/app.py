@@ -21,6 +21,32 @@ def initialize_session_state():
         st.session_state.document_processed = False
     if "last_query_data" not in st.session_state:
         st.session_state.last_query_data = None
+    if "session_id" not in st.session_state:
+        import time
+        st.session_state.session_id = str(time.time())
+        # Clear any existing documents when starting a new session
+        if st.session_state.rag_pipeline is not None:
+            try:
+                st.session_state.rag_pipeline.clear_documents()
+            except:
+                pass  # Ignore errors if collection doesn't exist yet
+
+def start_new_chat():
+    """Start a new chat session by clearing all data."""
+    import time
+    st.session_state.session_id = str(time.time())
+    st.session_state.messages = []
+    st.session_state.document_processed = False
+    st.session_state.last_query_data = None
+    
+    # Clear documents from the RAG pipeline
+    if st.session_state.rag_pipeline is not None:
+        try:
+            st.session_state.rag_pipeline.clear_documents()
+        except:
+            pass
+    
+    st.rerun()
 
 def setup_rag_pipeline():
     """Initialize RAG pipeline with local models."""
@@ -136,6 +162,12 @@ def main():
     
     if uploaded_file is not None:
         process_uploaded_file(uploaded_file)
+    
+    # New Chat button
+    col1, col2 = st.columns([1, 4])
+    with col1:
+        if st.button("🔄 New Chat", help="Start a new chat session"):
+            start_new_chat()
     
     # Chat interface (outside of tabs)
     if st.session_state.document_processed:
