@@ -2,8 +2,9 @@ import os
 import re
 from typing import List, Tuple
 import numpy as np
-from openai import OpenAI
+from groq import Groq
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.feature_extraction.text import TfidfVectorizer
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -12,12 +13,12 @@ class RAGPipeline:
     """RAG pipeline for document question answering."""
     
     def __init__(self):
-        """Initialize the RAG pipeline with OpenAI client."""
-        self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        """Initialize the RAG pipeline with Groq client."""
+        self.client = Groq(api_key=os.getenv("GROQ_API_KEY"))
         self.chunks = []
         self.embeddings = []
-        self.embedding_model = "text-embedding-ada-002"
-        self.chat_model = "gpt-3.5-turbo"
+        self.vectorizer = TfidfVectorizer(max_features=1000, stop_words='english')
+        self.chat_model = "llama-3.1-8b-instant"
     
     def chunk_text(self, text: str, chunk_size: int = 800, overlap: int = 100) -> List[str]:
         """Split text into overlapping chunks.
@@ -94,7 +95,7 @@ class RAGPipeline:
         return chunks
     
     def create_embeddings(self, texts: List[str]) -> List[List[float]]:
-        """Create embeddings for a list of texts.
+        """Create embeddings for a list of texts using TF-IDF.
         
         Args:
             texts: List of texts to embed.
@@ -105,12 +106,15 @@ class RAGPipeline:
         if not texts:
             return []
         
-        response = self.client.embeddings.create(
-            model=self.embedding_model,
-            input=texts
-        )
+        # Fit the vectorizer on all texts if it hasn't been fitted yet
+        if not hasattr(self.vectorizer, 'vocabulary_') or not self.vectorizer.vocabulary_:
+            self.vectorizer.fit(texts)
         
-        return [embedding.embedding for embedding in response.data]
+        # Transform texts to TF-IDF vectors
+        tfidf_matrix = self.vectorizer.transform(texts)
+        
+        # Convert to dense arrays and return as list of lists
+        return tfidf_matrix.toarray().tolist()
     
     def add_document(self, text: str) -> None:
         """Add a document to the vector store.
@@ -122,10 +126,15 @@ class RAGPipeline:
         if not chunks:
             return
         
-        embeddings = self.create_embeddings(chunks)
-        
+        # Add new chunks to existing chunks
         self.chunks.extend(chunks)
-        self.embeddings.extend(embeddings)
+        
+        # Re-fit the vectorizer on all chunks and create embeddings
+        if self.chunks:
+            # Fit vectorizer on all chunks
+            self.vectorizer.fit(self.chunks)
+            # Create embeddings for all chunks
+            self.embeddings = self.create_embeddings(self.chunks)
     
     def retrieve_relevant_chunks(self, question: str, top_k: int = 5) -> List[Tuple[str, float]]:
         """Retrieve most relevant chunks for a question.
@@ -140,7 +149,8 @@ class RAGPipeline:
         if not self.chunks or not self.embeddings:
             return []
         
-        question_embedding = self.create_embeddings([question])[0]
+        # Create embedding for the question using the fitted vectorizer
+        question_embedding = self.vectorizer.transform([question]).toarray()[0]
         
         similarities = cosine_similarity(
             [question_embedding], 

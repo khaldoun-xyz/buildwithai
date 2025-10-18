@@ -6,7 +6,7 @@ A RAG-based document question-answering application that allows you to upload te
 
 - **Document Upload**: Upload text files (.txt) for processing
 - **Chat Interface**: Interactive chat interface for asking questions
-- **RAG Pipeline**: Retrieval-Augmented Generation using OpenAI embeddings and GPT
+- **RAG Pipeline**: Retrieval-Augmented Generation using TF-IDF embeddings and Groq's Llama 3.1 8B Instant
 - **Source Citations**: View which parts of the document were used to answer your questions
 - **Docker Deployment**: Easy deployment with Docker Compose
 
@@ -14,13 +14,30 @@ A RAG-based document question-answering application that allows you to upload te
 
 - **Frontend**: Streamlit (Python-based UI)
 - **Backend**: FastAPI (REST API with RAG pipeline)
-- **AI Models**: OpenAI API (embeddings + chat completion)
-- **Vector Storage**: In-memory (NumPy/scikit-learn for similarity search)
+- **AI Models**: Groq API (Llama 3.1 8B Instant for chat completion)
+- **Vector Storage**: In-memory (TF-IDF with scikit-learn for similarity search)
+
+## Groq Integration
+
+This application uses **Groq's Llama 3.1 8B Instant model** for fast inference and high-quality responses. Key features:
+
+- **Fast Inference**: Groq provides ultra-fast inference speeds
+- **Cost-Effective**: Competitive pricing compared to other AI providers
+- **High Quality**: Llama 3.1 8B Instant delivers excellent performance for document Q&A
+- **TF-IDF Embeddings**: Uses scikit-learn's TF-IDF vectorization for document similarity (since Groq doesn't provide embeddings)
+
+### Getting a Groq API Key
+
+1. Visit [console.groq.com](https://console.groq.com)
+2. Sign up for an account
+3. Navigate to API Keys section
+4. Create a new API key
+5. Copy the key and use it in your environment variables
 
 ## Prerequisites
 
 - Docker and Docker Compose
-- OpenAI API key
+- Groq API key
 
 ## Setup Instructions
 
@@ -35,14 +52,18 @@ A RAG-based document question-answering application that allows you to upload te
    cp env.example .env
    ```
    
-   Edit `.env` and add your OpenAI API key:
+   Edit `.env` and add your Groq API key:
    ```
-   OPENAI_API_KEY=your_actual_openai_api_key_here
+   GROQ_API_KEY=your_actual_groq_api_key_here
    BACKEND_URL=http://backend:8000
    ```
 
 3. **Build and run with Docker Compose**:
    ```bash
+   # Set the Groq API key as an environment variable
+   export GROQ_API_KEY="your_actual_groq_api_key_here"
+   
+   # Build and run the application
    docker-compose up --build
    ```
 
@@ -126,7 +147,7 @@ README.md           # This file
 
 ### Environment Variables
 
-- `OPENAI_API_KEY`: Your OpenAI API key (required)
+- `GROQ_API_KEY`: Your Groq API key (required)
 - `BACKEND_URL`: Backend service URL (default: http://backend:8000)
 
 ### RAG Pipeline Settings
@@ -134,8 +155,8 @@ README.md           # This file
 The RAG pipeline uses the following default settings:
 - **Chunk size**: 800 characters
 - **Overlap**: 100 characters
-- **Embedding model**: text-embedding-ada-002
-- **Chat model**: gpt-3.5-turbo
+- **Embedding method**: TF-IDF vectorization (1000 max features)
+- **Chat model**: llama-3.1-8b-instant
 - **Top-k retrieval**: 5 most similar chunks
 
 ## Troubleshooting
@@ -143,7 +164,7 @@ The RAG pipeline uses the following default settings:
 ### Common Issues
 
 1. **Backend not responding**:
-   - Check if the OpenAI API key is correctly set
+   - Check if the Groq API key is correctly set
    - Verify Docker containers are running: `docker-compose ps`
    - Check logs: `docker-compose logs backend`
 
