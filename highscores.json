@@ -1,0 +1,82 @@
+{
+  "EASY": [
+    {
+      "player": "EasyPlayer2",
+      "score": 1500,
+      "level": 6,
+      "lines": 25,
+      "date": "2025-10-18 11:42",
+      "difficulty": "EASY"
+    },
+    {
+      "player": "TestPlayer1",
+      "score": 1000,
+      "level": 5,
+      "lines": 20,
+      "date": "2025-10-18 11:41",
+      "difficulty": "EASY"
+    },
+    {
+      "player": "EasyPlayer1",
+      "score": 1000,
+      "level": 5,
+      "lines": 20,
+      "date": "2025-10-18 11:42",
+      "difficulty": "EASY"
+    }
+  ],
+  "NORMAL": [
+    {
+      "player": "NormalPlayer2",
+      "score": 2500,
+      "level": 9,
+      "lines": 40,
+      "date": "2025-10-18 11:42",
+      "difficulty": "NORMAL"
+    },
+    {
+      "player": "TestPlayer2",
+      "score": 2000,
+      "level": 8,
+      "lines": 35,
+      "date": "2025-10-18 11:41",
+      "difficulty": "NORMAL"
+    },
+    {
+      "player": "NormalPlayer1",
+      "score": 2000,
+      "level": 8,
+      "lines": 35,
+      "date": "2025-10-18 11:42",
+      "difficulty": "NORMAL"
+    }
+  ],
+  "HARD": [
+    {
+      "player": "HardPlayer2",
+      "score": 3500,
+      "level": 11,
+      "lines": 55,
+      "date": "2025-10-18 11:42",
+      "difficulty": "HARD"
+    },
+    {
+      "player": "TestPlayer3",
+      "score": 3000,
+      "level": 10,
+      "lines": 50,
+      "date": "2025-10-18 11:41",
+      "difficulty": "HARD"
+    },
+    {
+      "player": "HardPlayer1",
+      "score": 3000,
+      "level": 10,
+      "lines": 50,
+      "date": "2025-10-18 11:42",
+      "difficulty": "HARD"
+    }
+  ],
+  "EXPERT": [],
+  "INSANE": []
+}
