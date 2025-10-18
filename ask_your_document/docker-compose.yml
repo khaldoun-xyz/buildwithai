@@ -7,7 +7,6 @@ services:
       - "8501:8501"
     volumes:
       - ./chroma_db:/app/chroma_db
-      - ./.env:/app/.env
     depends_on:
       - ollama
     restart: unless-stopped
