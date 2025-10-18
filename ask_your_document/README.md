@@ -1,0 +1,78 @@
+# Ask Your Document
+
+A RAG-based document question answering application with hallucination validation.
+
+## Features
+
+- Upload text documents (.txt files)
+- Ask questions about document content
+- AI-powered answers using GPT-4
+- Validation tab to check for hallucinations
+- Source chunk verification
+- Docker deployment ready
+
+## Quick Start
+
+1. **Clone and setup:**
+   ```bash
+   cd ask_your_document
+   cp .env.example .env
+   ```
+
+2. **Add your OpenAI API key:**
+   Edit `.env` and add your OpenAI API key:
+   ```
+   OPENAI_API_KEY=your_api_key_here
+   ```
+
+3. **Run with Docker:**
+   ```bash
+   docker-compose up --build
+   ```
+
+4. **Access the application:**
+   Open http://localhost:8501 in your browser
+
+## Manual Setup (without Docker)
+
+1. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. **Set environment variable:**
+   ```bash
+   export OPENAI_API_KEY=your_api_key_here
+   ```
+
+3. **Run the application:**
+   ```bash
+   streamlit run app.py
+   ```
+
+## Usage
+
+1. **Upload a document:** Use the file uploader in the Chat tab to upload a .txt file
+2. **Ask questions:** Type your questions in the chat interface
+3. **Validate answers:** Switch to the Validation tab to see source chunks and verify the AI's answers
+
+## Architecture
+
+- **Frontend:** Streamlit
+- **Vector Database:** ChromaDB (persistent storage)
+- **LLM:** OpenAI GPT-4 + text-embedding-3-small
+- **Deployment:** Docker + docker-compose
+
+## Validation Feature
+
+The validation tab helps you:
+- See which document chunks were used to generate each answer
+- Check similarity scores for relevance
+- Verify if the AI's answer is grounded in the source material
+- Identify potential hallucinations
+
+## Requirements
+
+- Python 3.11+
+- OpenAI API key
+- Docker (optional, for containerized deployment)
