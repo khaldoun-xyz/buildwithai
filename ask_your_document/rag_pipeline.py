@@ -33,7 +33,7 @@ class RAGPipeline:
         )
     
     def chunk_text(self, text: str, document_name: str) -> List[Dict[str, any]]:
-        """Split text into overlapping chunks.
+        """Split text into overlapping chunks with better sentence boundaries.
         
         Args:
             text: The text to chunk.
@@ -42,25 +42,88 @@ class RAGPipeline:
         Returns:
             List of chunk dictionaries with text, metadata, and IDs.
         """
-        tokens = self.encoding.encode(text)
-        chunks = []
+        import re
         
-        for i in range(0, len(tokens), self.chunk_size - self.chunk_overlap):
-            chunk_tokens = tokens[i:i + self.chunk_size]
-            chunk_text = self.encoding.decode(chunk_tokens)
+        # First, split by paragraphs (double newlines)
+        paragraphs = text.split('\n\n')
+        chunks = []
+        chunk_index = 0
+        
+        for para_idx, paragraph in enumerate(paragraphs):
+            if not paragraph.strip():
+                continue
+                
+            # Clean up the paragraph
+            paragraph = paragraph.strip()
             
-            chunk_id = f"{document_name}_chunk_{i // (self.chunk_size - self.chunk_overlap)}"
-            
-            chunks.append({
-                "id": chunk_id,
-                "text": chunk_text,
-                "metadata": {
-                    "document_name": document_name,
-                    "chunk_index": i // (self.chunk_size - self.chunk_overlap),
-                    "start_char": i,
-                    "end_char": i + len(chunk_tokens)
-                }
-            })
+            # If paragraph is small enough, use it as a single chunk
+            if len(paragraph) <= self.chunk_size:
+                chunk_id = f"{document_name}_chunk_{chunk_index}"
+                chunks.append({
+                    "id": chunk_id,
+                    "text": paragraph,
+                    "metadata": {
+                        "document_name": document_name,
+                        "chunk_index": chunk_index,
+                        "paragraph_index": para_idx,
+                        "type": "full_paragraph",
+                        "char_count": len(paragraph)
+                    }
+                })
+                chunk_index += 1
+            else:
+                # Split long paragraphs by sentences
+                sentences = re.split(r'(?<=[.!?])\s+', paragraph)
+                current_chunk = ""
+                sentence_start = 0
+                
+                for sent_idx, sentence in enumerate(sentences):
+                    sentence = sentence.strip()
+                    if not sentence:
+                        continue
+                        
+                    # If adding this sentence would exceed chunk size, save current chunk
+                    if len(current_chunk) + len(sentence) + 1 > self.chunk_size and current_chunk:
+                        chunk_id = f"{document_name}_chunk_{chunk_index}"
+                        chunks.append({
+                            "id": chunk_id,
+                            "text": current_chunk.strip(),
+                            "metadata": {
+                                "document_name": document_name,
+                                "chunk_index": chunk_index,
+                                "paragraph_index": para_idx,
+                                "sentence_start": sentence_start,
+                                "sentence_end": sent_idx - 1,
+                                "type": "sentence_group",
+                                "char_count": len(current_chunk)
+                            }
+                        })
+                        chunk_index += 1
+                        
+                        # Start new chunk with overlap (last 2-3 sentences)
+                        overlap_sentences = current_chunk.split('.')[-3:]
+                        current_chunk = '. '.join([s.strip() for s in overlap_sentences if s.strip()]) + '. ' + sentence
+                        sentence_start = sent_idx - len([s for s in overlap_sentences if s.strip()])
+                    else:
+                        current_chunk += " " + sentence if current_chunk else sentence
+                
+                # Add remaining chunk
+                if current_chunk.strip():
+                    chunk_id = f"{document_name}_chunk_{chunk_index}"
+                    chunks.append({
+                        "id": chunk_id,
+                        "text": current_chunk.strip(),
+                        "metadata": {
+                            "document_name": document_name,
+                            "chunk_index": chunk_index,
+                            "paragraph_index": para_idx,
+                            "sentence_start": sentence_start,
+                            "sentence_end": len(sentences) - 1,
+                            "type": "sentence_group",
+                            "char_count": len(current_chunk)
+                        }
+                    })
+                    chunk_index += 1
         
         return chunks
     
