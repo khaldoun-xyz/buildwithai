@@ -5,6 +5,8 @@ from typing import List, Dict, Tuple, Optional
 import ollama
 from sentence_transformers import SentenceTransformer
 import streamlit as st
+import PyPDF2
+import io
 
 
 class RAGPipeline:
@@ -71,6 +73,24 @@ class RAGPipeline:
         """
         return self.embedding_model.encode(text).tolist()
     
+    def extract_text_from_pdf(self, pdf_file) -> str:
+        """Extract text from PDF file.
+        
+        Args:
+            pdf_file: PDF file object.
+            
+        Returns:
+            Extracted text from the PDF.
+        """
+        try:
+            pdf_reader = PyPDF2.PdfReader(pdf_file)
+            text = ""
+            for page in pdf_reader.pages:
+                text += page.extract_text() + "\n"
+            return text
+        except Exception as e:
+            raise Exception(f"Error extracting text from PDF: {str(e)}")
+    
     def add_document(self, text: str, document_name: str) -> None:
         """Add document to the vector database.
         
@@ -91,6 +111,16 @@ class RAGPipeline:
             metadatas=metadatas,
             ids=ids
         )
+    
+    def add_pdf_document(self, pdf_file, document_name: str) -> None:
+        """Add PDF document to the vector database.
+        
+        Args:
+            pdf_file: PDF file object.
+            document_name: Name of the document.
+        """
+        text = self.extract_text_from_pdf(pdf_file)
+        self.add_document(text, document_name)
     
     def retrieve_relevant_chunks(self, query: str, n_results: int = 5) -> List[Dict[str, any]]:
         """Retrieve most relevant chunks for a query.

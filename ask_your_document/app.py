@@ -33,14 +33,22 @@ def setup_rag_pipeline():
             st.stop()
 
 def process_uploaded_file(uploaded_file):
-    """Process uploaded text file and add to vector database."""
+    """Process uploaded file and add to vector database."""
     if uploaded_file is not None:
         try:
-            text = str(uploaded_file.read(), "utf-8")
             document_name = uploaded_file.name
+            file_extension = document_name.lower().split('.')[-1]
             
             with st.spinner("Processing document..."):
-                st.session_state.rag_pipeline.add_document(text, document_name)
+                if file_extension == 'txt':
+                    text = str(uploaded_file.read(), "utf-8")
+                    st.session_state.rag_pipeline.add_document(text, document_name)
+                elif file_extension == 'pdf':
+                    st.session_state.rag_pipeline.add_pdf_document(uploaded_file, document_name)
+                else:
+                    st.error(f"Unsupported file format: {file_extension}. Please upload .txt or .pdf files.")
+                    return
+                
                 st.session_state.document_processed = True
                 st.success(f"Document '{document_name}' processed successfully!")
                 
@@ -121,9 +129,9 @@ def main():
     with tab1:
         st.markdown("### Upload Document")
         uploaded_file = st.file_uploader(
-            "Choose a text file (.txt)",
-            type=['txt'],
-            help="Upload a .txt file to start asking questions"
+            "Choose a document file (.txt or .pdf)",
+            type=['txt', 'pdf'],
+            help="Upload a .txt or .pdf file to start asking questions"
         )
         
         if uploaded_file is not None:

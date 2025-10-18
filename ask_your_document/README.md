@@ -4,7 +4,7 @@ A RAG-based document question answering application with hallucination validatio
 
 ## Features
 
-- Upload text documents (.txt files)
+- Upload text documents (.txt files) and PDF files (.pdf)
 - Ask questions about document content
 - AI-powered answers using GPT-4
 - Validation tab to check for hallucinations
@@ -55,7 +55,7 @@ A RAG-based document question answering application with hallucination validatio
 
 ## Usage
 
-1. **Upload a document:** Use the file uploader in the Chat tab to upload a .txt file
+1. **Upload a document:** Use the file uploader in the Chat tab to upload a .txt or .pdf file
 2. **Ask questions:** Type your questions in the chat interface
 3. **Validate answers:** Switch to the Validation tab to see source chunks and verify the AI's answers
 
