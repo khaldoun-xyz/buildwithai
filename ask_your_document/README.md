@@ -19,10 +19,13 @@ A RAG-based document question answering application with hallucination validatio
    cp .env.example .env
    ```
 
-2. **Add your OpenAI API key:**
-   Edit `.env` and add your OpenAI API key:
-   ```
-   OPENAI_API_KEY=your_api_key_here
+2. **Install and setup Ollama:**
+   ```bash
+   # Install Ollama (if not already installed)
+   curl -fsSL https://ollama.ai/install.sh | sh
+   
+   # Pull the llama3.1:8b-instant model
+   ollama pull llama3.1:8b-instant
    ```
 
 3. **Run with Docker:**
@@ -40,9 +43,9 @@ A RAG-based document question answering application with hallucination validatio
    pip install -r requirements.txt
    ```
 
-2. **Set environment variable:**
+2. **Start Ollama service:**
    ```bash
-   export OPENAI_API_KEY=your_api_key_here
+   ollama serve
    ```
 
 3. **Run the application:**
@@ -60,7 +63,7 @@ A RAG-based document question answering application with hallucination validatio
 
 - **Frontend:** Streamlit
 - **Vector Database:** ChromaDB (persistent storage)
-- **LLM:** OpenAI GPT-4 + text-embedding-3-small
+- **LLM:** Ollama llama3.1:8b-instant + sentence-transformers
 - **Deployment:** Docker + docker-compose
 
 ## Validation Feature
@@ -74,5 +77,6 @@ The validation tab helps you:
 ## Requirements
 
 - Python 3.11+
-- OpenAI API key
+- Ollama installed and running
+- llama3.1:8b-instant model available in Ollama
 - Docker (optional, for containerized deployment)

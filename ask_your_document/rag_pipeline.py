@@ -2,23 +2,22 @@ import os
 import tiktoken
 import chromadb
 from typing import List, Dict, Tuple, Optional
-from openai import OpenAI
+import ollama
+from sentence_transformers import SentenceTransformer
 import streamlit as st
 
 
 class RAGPipeline:
     """RAG pipeline for document question answering with hallucination validation."""
     
-    def __init__(self, openai_api_key: str, persist_directory: str = "./chroma_db"):
+    def __init__(self, persist_directory: str = "./chroma_db"):
         """Initialize the RAG pipeline.
         
         Args:
-            openai_api_key: OpenAI API key for embeddings and chat completion.
             persist_directory: Directory to persist ChromaDB data.
         """
-        self.client = OpenAI(api_key=openai_api_key)
-        self.embedding_model = "text-embedding-3-small"
-        self.chat_model = "gpt-4"
+        self.chat_model = "llama3.1:8b-instant"
+        self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
         self.chunk_size = 500
         self.chunk_overlap = 50
         self.encoding = tiktoken.get_encoding("cl100k_base")
@@ -62,7 +61,7 @@ class RAGPipeline:
         return chunks
     
     def get_embedding(self, text: str) -> List[float]:
-        """Get embedding for text using OpenAI.
+        """Get embedding for text using sentence transformers.
         
         Args:
             text: Text to embed.
@@ -70,11 +69,7 @@ class RAGPipeline:
         Returns:
             Embedding vector.
         """
-        response = self.client.embeddings.create(
-            model=self.embedding_model,
-            input=text
-        )
-        return response.data[0].embedding
+        return self.embedding_model.encode(text).tolist()
     
     def add_document(self, text: str, document_name: str) -> None:
         """Add document to the vector database.
@@ -149,16 +144,18 @@ class RAGPipeline:
         Please provide a comprehensive answer based on the context above. If you reference specific information, 
         mention which document it comes from."""
         
-        response = self.client.chat.completions.create(
-            model=self.chat_model,
-            messages=[
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": user_prompt}
-            ],
-            temperature=0.1
-        )
-        
-        return response.choices[0].message.content
+        try:
+            response = ollama.chat(
+                model=self.chat_model,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                options={"temperature": 0.1}
+            )
+            return response['message']['content']
+        except Exception as e:
+            return f"Error generating answer: {str(e)}"
     
     def process_query(self, query: str) -> Tuple[str, List[Dict[str, any]]]:
         """Process a query and return answer with source chunks.

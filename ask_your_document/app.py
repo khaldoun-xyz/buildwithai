@@ -23,14 +23,14 @@ def initialize_session_state():
         st.session_state.last_query_data = None
 
 def setup_rag_pipeline():
-    """Initialize RAG pipeline with OpenAI API key."""
-    openai_api_key = os.getenv("OPENAI_API_KEY")
-    if not openai_api_key:
-        st.error("Please set your OPENAI_API_KEY in the .env file")
-        st.stop()
-    
+    """Initialize RAG pipeline with local models."""
     if st.session_state.rag_pipeline is None:
-        st.session_state.rag_pipeline = RAGPipeline(openai_api_key)
+        try:
+            st.session_state.rag_pipeline = RAGPipeline()
+        except Exception as e:
+            st.error(f"Error initializing RAG pipeline: {str(e)}")
+            st.error("Make sure Ollama is running and llama3.1:8b-instant model is available")
+            st.stop()
 
 def process_uploaded_file(uploaded_file):
     """Process uploaded text file and add to vector database."""
